@@ -20,11 +20,17 @@ visroot = './results/abs'
 if not os.path.isdir(visroot):
     os.makedirs(visroot)
 
+# def load_data(isTrain, batch_size):
+#     if isTrain:
+#         dataset = 
+
+
 class TacoDataset(Dataset):
-    def __init__(self, dataroot, transforms=None, absolute_coords=True, vis_ids=[]):
+    def __init__(self, dataroot, isTrain, transforms=None, absolute_coords=True, vis_ids=[]):
         self.transforms = transforms
         self.absolute_coords = absolute_coords
         self.dataroot = dataroot
+        self.isTrain = isTrain
 
         labels_path = os.path.join(dataroot, 'annotations.json')
         with open(labels_path, 'r') as lb:
@@ -84,10 +90,14 @@ class TacoDataset(Dataset):
             Y   (List[(int, List)]): Contains cateogory_id(int), bboxs(list)
         """
         X = Image.open(self.images[idx])
-        Y = self.labels[idx]    # [ (category_id, bboxs), ... ]
-        return X, Y
+
+        if self.isTrain:
+            Y = self.labels[idx]    # [ (category_id, bboxs), ... ]
+            return X, Y
+        else:
+            return X
 
 
 
 if __name__ == '__main__':
-    taco = TacoDataset(dataroot=dataroot, transforms=None, absolute_coords=False)
+    taco = TacoDataset(dataroot=dataroot, isTrain=True, transforms=None, absolute_coords=False, vis_ids=[x for x in range(10)])

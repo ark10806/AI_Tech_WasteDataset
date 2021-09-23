@@ -1,9 +1,11 @@
 from models.swin_transformer import SwinTransformer
+from models.neck import FPN
+from models.rpn import rpn_fpn
 import torch.nn as nn
 
-class SwinTransformerObjectDetection(nn.Module):
+class SwinTransformer(nn.Module):
     def __init__(self, n_classes=60):
-        super(SwinTransformerObjectDetection, self).__init__()
+        super(SwinTransformer, self).__init__()
         self.backbone = SwinTransformer()
         in_features = self.backbone.head.in_features
         self.backbone.head = nn.Identity()
@@ -24,5 +26,5 @@ class SwinTransformerObjectDetection(nn.Module):
 
 
 if __name__ == '__main__':
-    SwinOD = SwinTransformerObjectDetection(n_classes=337)
+    SwinOD = SwinTransformer(n_classes=337)
     print(SwinOD)

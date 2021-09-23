@@ -583,11 +583,3 @@ class SwinTransformer(nn.Module):
         flops += self.num_features * self.patches_resolution[0] * self.patches_resolution[1] // (2 ** self.num_layers)
         flops += self.num_features * self.num_classes
         return flops
-
-
-if __name__ == '__main__':
-    model = SwinTransformer()
-    in_features = model.head.in_features
-    model.head = nn.Identity()
-    print(model)
-    print(f'in_features: {in_features}')

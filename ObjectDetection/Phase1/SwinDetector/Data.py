@@ -1,4 +1,5 @@
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset, DataLoader, Subset
+from sklearn.model_selection import train_test_split
 from glob import glob
 import os
 import albumentations as A
@@ -20,10 +21,37 @@ visroot = './results/abs'
 if not os.path.isdir(visroot):
     os.makedirs(visroot)
 
-# def load_data(isTrain, batch_size):
-#     if isTrain:
-#         dataset = 
+def load_data(isTrain, batch_size):
+    if isTrain:
+        taco = TacoDataset(dataroot=dataroot, isTrain=isTrain)
+        datasets = split_dataset(taco)
 
+        dataloader = {x: DataLoader(
+            dataset = datasets[x],
+            batch_size = batch_size,
+            shuffle = True,
+            num_workers = 0,
+            drop_last = True,
+        ) for x in ['train', 'test']}
+
+    else:
+        taco = TacoDataset(dataroot=dataroot, isTrain=isTrain)
+
+        dataloader = DataLoader(
+            dataset = taco,
+            batch_size = batch_size,
+            shuffle = False,
+            num_workers = 0,
+            drop_last = False
+        )
+    return dataloader
+
+def split_dataset(dataset, val_split=0.2):
+    train_idx, test_idx = train_test_split(list(range(len(dataset))), test_size=val_split)
+    datasets = {}
+    datasets['train'] = Subset(dataset, train_idx)
+    datasets['test'] = Subset(dataset, test_idx)
+    return datasets
 
 class TacoDataset(Dataset):
     def __init__(self, dataroot, isTrain, transforms=None, absolute_coords=True, vis_ids=[]):
@@ -65,7 +93,7 @@ class TacoDataset(Dataset):
 
     def get_images(self, images):
         for img in images:
-            abs_path = os.path.join(self.dataroot, img['file_name'])
+            abs_path = os.path.join(self.₩dataroot, img['file_name'])
             self.images.append(abs_path)
 
     def __len__(self):
@@ -79,7 +107,7 @@ class TacoDataset(Dataset):
             pt2 = (pt1[0]+bbox[2], pt1[1]+bbox[3])
             draw.rectangle((pt1, pt2), outline=(255,0,0), width=3)
             category = self.categories[category_id]['name']
-            draw.text(pt1, category, (0,255,255), font=ImageFont.truetype('./FONTS/ubuntu.regular.ttf', 48))
+            draw.text(pt1, category, (0,255,255), font=ImageFont.truetype('/opt/ml/code/Waste/AI_Tech_WasteDataset/ObjectDetection/Phase1/SwinDetector/FONTS/ubuntu.regular.ttf', 48))
 
         img.save(f'{visroot}/vis{fname}.jpg')
         print(f'vis{fname} saved!')
@@ -87,7 +115,7 @@ class TacoDataset(Dataset):
     def __getitem__(self, idx):
         """ Returns:
             X   (Image): PIL.Image
-            Y   (List[(int, List)]): Contains cateogory_id(int), bboxs(list)
+            Y   (List[(int, List)]): Contains cateogory_id(int), bboxs(list), segpoly
         """
         X = Image.open(self.images[idx])
 
@@ -100,4 +128,5 @@ class TacoDataset(Dataset):
 
 
 if __name__ == '__main__':
-    taco = TacoDataset(dataroot=dataroot, isTrain=True, transforms=None, absolute_coords=False, vis_ids=[x for x in range(10)])
+    taco = TacoDataset(dataroot=dataroot, isTrain=True, transforms=None, absolute_coords=False, vis_ids=[x for x in range(100)])
+    # taco = TacoDataset(dataroot=dataroot, isTrain=True, transforms=None, absolute_coords=False, vis_ids=[])
